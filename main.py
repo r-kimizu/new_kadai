@@ -155,3 +155,29 @@ if chat_message:
     st.session_state.messages.append({"role": "user", "content": chat_message})
     # 表示用の会話ログにAIメッセージを追加
     st.session_state.messages.append({"role": "assistant", "content": content})
+
+from utils import index_documents
+
+def search_hr_employees(search_engine, csv_file_path):
+    """
+    人事部に所属する従業員情報を検索し、4人以上の結果を返す。
+    """
+    # ドキュメントをインデックス化
+    index_documents(search_engine, csv_file_path)
+
+    # 検索クエリを実行
+    query = "人事部に所属している従業員情報を一覧化して"
+    results = search_engine.search(query)
+
+    # 結果をフィルタリングして4人以上を保証
+    hr_employees = [result for result in results if '人事部' in result]
+    if len(hr_employees) < 4:
+        raise ValueError("検索結果が4人未満です。データを確認してください。")
+
+    return hr_employees
+
+# 使用例
+# search_engine = YourSearchEngine()
+# csv_path = 'data/社員について/社員名簿 .csv'
+# hr_employees = search_hr_employees(search_engine, csv_path)
+# print(hr_employees)

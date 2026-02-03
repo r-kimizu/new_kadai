@@ -14,6 +14,7 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 import constants as ct
+import csv
 
 
 ############################################################
@@ -114,3 +115,58 @@ def get_llm_response(chat_message):
     st.session_state.chat_history.extend([HumanMessage(content=chat_message), llm_response["answer"]])
 
     return llm_response
+
+
+def integrate_csv_to_document(csv_file_path):
+    """
+    CSVファイルを1つの統合されたドキュメントに変換する。
+    各行の情報を文脈を保持した形で結合する。
+    """
+    integrated_document = ""
+
+    with open(csv_file_path, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            # 各行の情報を結合して1つの文書に統合
+            integrated_document += f"社員ID: {row['社員ID']}, 氏名: {row['氏名（フルネーム）']}, 部署: {row['部署']}, 役職: {row['役職']}, スキル: {row['スキルセット']}, 資格: {row['保有資格']}\n"
+
+    return integrated_document
+
+def index_documents(search_engine, csv_file_path):
+    """
+    統合されたドキュメントを検索エンジンにインデックス化する。
+    """
+    document = integrate_csv_to_document(csv_file_path)
+    search_engine.index_document(document)
+
+
+def optimize_query(query):
+    """
+    検索クエリを最適化する。
+
+    Args:
+        query: ユーザーからの検索クエリ
+
+    Returns:
+        最適化された検索クエリ
+    """
+    # 例: 「人事部に所属している従業員情報を一覧化して」を「人事部 AND 従業員」に変換
+    optimized_query = query.replace("に所属している", "AND").replace("情報を一覧化して", "").strip()
+    return optimized_query
+
+def context_aware_search(search_engine, query, context):
+    """
+    文脈を考慮した検索を実行する。
+
+    Args:
+        search_engine: 検索エンジンのインスタンス
+        query: ユーザーからの検索クエリ
+        context: 文脈情報
+
+    Returns:
+        検索結果のリスト
+    """
+    # 文脈をクエリに追加して検索
+    context_query = f"{query} AND {context}"
+    results = search_engine.search(context_query)
+    return results

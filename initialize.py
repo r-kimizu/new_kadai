@@ -19,6 +19,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 import constants as ct
+from utils import index_documents
+from utils import integrate_csv_to_document, index_documents
 
 
 ############################################################
@@ -44,6 +46,21 @@ def initialize():
     initialize_logger()
     # RAGのRetrieverを作成
     initialize_retriever()
+
+def integrate_and_index_data():
+    """
+    CSVデータを統合し、検索エンジンにインデックス化する。
+    """
+    # CSVファイルのパス
+    csv_path = 'data/社員について/社員名簿 .csv'
+
+    # 検索エンジンの初期化（仮の例）
+    search_engine = YourSearchEngine()
+
+    # CSVデータを統合してインデックス化
+    index_documents(search_engine, csv_path)
+
+    print("データの統合とインデックス化が完了しました。")
 
 
 def initialize_logger():
@@ -248,3 +265,16 @@ def adjust_string(s):
     
     # OSがWindows以外の場合はそのまま返す
     return s
+
+
+def index_documents(search_engine, csv_file_path):
+    """
+    統合されたドキュメントを検索エンジンにインデックス化する。
+    """
+    document = integrate_csv_to_document(csv_file_path)
+    search_engine.index_document(document)
+
+# 使用例
+# search_engine = YourSearchEngine()
+# csv_path = 'data/社員について/社員名簿 .csv'
+# index_documents(search_engine, csv_path)
