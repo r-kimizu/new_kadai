@@ -138,16 +138,11 @@ def initialize_retriever():
     # 埋め込みモデルの用意
     embeddings = OpenAIEmbeddings()
     
-     # 定数としてチャンクサイズを定義
-    CHUNK_SIZE = 500
-    CHUNK_OVERLAP = 50
-    
-      # ...existing code...
-
+     
     # チャンク分割用のオブジェクトを作成
     text_splitter = CharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
+        chunk_size= ct.CHUNK_SIZE,
+        chunk_overlap= ct.CHUNK_OVERLAP,
         separator="\n"
     )
 
@@ -158,8 +153,7 @@ def initialize_retriever():
     db = Chroma.from_documents(splitted_docs, embedding=embeddings)
 
     # ベクターストアを検索するRetrieverの作成
-    st.session_state.retriever = db.as_retriever(search_kwargs={"k": 5})
-
+    st.session_state.retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
 
 def initialize_session_state():
     """
@@ -235,8 +229,11 @@ def file_load(path, docs_all):
     # ファイル名（拡張子を含む）を取得
     file_name = os.path.basename(path)
 
-    # 想定していたファイル形式の場合のみ読み込む
+
+        # 想定していたファイル形式の場合のみ読み込む
     if file_extension in ct.SUPPORTED_EXTENSIONS:
+            # デバッグ用のログ出力
+        print(f"Loading file: {path}")
         # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
         loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
         docs = loader.load()
